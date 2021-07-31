@@ -2,6 +2,8 @@ import { verify } from "jsonwebtoken";
 
 import { User } from "@modules/accounts/infra/typeorm/entities/User";
 import { UsersRepositoryInMemory } from "@modules/accounts/repositories/in-memory/UsersRepositoryInMemory";
+import { UserTokenRepositoryInMemory } from "@modules/accounts/repositories/in-memory/UserTokenRepositoryInMemory";
+import { DayjsDateProvider } from "@shared/container/providers/DateProvider/implementations/DayjsDateProvider";
 import { AppError } from "@shared/errors/AppError";
 
 import { CreateUserUseCase } from "../createUser/CreateUserUseCase";
@@ -10,6 +12,8 @@ import { AuthenticateUserUseCase } from "./AuthenticateUserUseCase";
 let usersRepositoryInMemory: UsersRepositoryInMemory;
 let createUser: CreateUserUseCase;
 let authenticateUser: AuthenticateUserUseCase;
+let userTokensRepository: UserTokenRepositoryInMemory;
+let dateProvider: DayjsDateProvider;
 
 interface IPayload {
   sub: string;
@@ -19,7 +23,13 @@ describe("Authenticate user", () => {
   beforeEach(() => {
     usersRepositoryInMemory = new UsersRepositoryInMemory();
     createUser = new CreateUserUseCase(usersRepositoryInMemory);
-    authenticateUser = new AuthenticateUserUseCase(usersRepositoryInMemory);
+    userTokensRepository = new UserTokenRepositoryInMemory();
+    dateProvider = new DayjsDateProvider();
+    authenticateUser = new AuthenticateUserUseCase(
+      usersRepositoryInMemory,
+      userTokensRepository,
+      dateProvider
+    );
   });
 
   it("should be able to authenticate user", async () => {
@@ -55,16 +65,14 @@ describe("Authenticate user", () => {
       password: user.password,
     });
 
-    expect(() => {
-      const { sub: user_id } = verify(
-        authenticatedUser.token,
-        "25f54e609455d6be38e1f9506bd3fec7"
-      ) as IPayload;
+    const { sub: user_id } = verify(
+      authenticatedUser.token,
+      "25f54e609455d6be38e1f9506bd3fec7"
+    ) as IPayload;
 
-      const foundUser = usersRepositoryInMemory.findById(user_id);
+    const foundUser = await usersRepositoryInMemory.findById(user_id);
 
-      expect(foundUser).toBeInstanceOf(User);
-    });
+    expect(foundUser).toBeInstanceOf(User);
   });
 
   it("should not be authenticate user with invalid credentials", async () => {
@@ -82,6 +90,6 @@ describe("Authenticate user", () => {
         email: user.email,
         password: "1234",
       });
-    }).rejects.toBeInstanceOf(AppError);
+    }).rejects.toEqual(new AppError("Email or password incorrect"));
   });
 });

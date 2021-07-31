@@ -28,7 +28,17 @@ describe("Create car", () => {
     expect(car).toHaveProperty("id");
   });
 
-  it("shound not be able to create a car with exists license plate", () => {
+  it("shound not be able to create a car with exists license plate", async () => {
+    await createCar.execute({
+      brand: "volkswagen",
+      category_id: "category_id",
+      daily_rate: 100,
+      description: "Subcompacto",
+      fine_amount: 60,
+      license_plate: "AYZ0912",
+      name: "Virtus",
+    });
+
     expect(async () => {
       await createCar.execute({
         brand: "volkswagen",
@@ -39,17 +49,7 @@ describe("Create car", () => {
         license_plate: "AYZ0912",
         name: "Virtus",
       });
-
-      await createCar.execute({
-        brand: "volkswagen",
-        category_id: "category_id",
-        daily_rate: 100,
-        description: "Subcompacto",
-        fine_amount: 60,
-        license_plate: "AYZ0912",
-        name: "Virtus",
-      });
-    }).rejects.toBeInstanceOf(AppError);
+    }).rejects.toEqual(new AppError("LICENSE_PLATE_ALREADY_EXISTS"));
   });
 
   it("should be able to create a car with available true by default", async () => {

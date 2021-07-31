@@ -51,6 +51,6 @@ describe("Create car specification", () => {
         car_id,
         specifications_id,
       });
-    }).rejects.toBeInstanceOf(AppError);
+    }).rejects.toEqual(new AppError("CAR_DOES_NOT_EXISTS", 404));
   });
 });

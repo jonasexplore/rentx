@@ -51,3 +51,4 @@ Deve ser possível cadastrar um aluguel.
 O aluguel deve ter duração miníma de 24h.
 Não deve ser possível cadastrar um novo aluguel caso já exista um aberto para o memso usuário.
 Não deve ser possível cadastrar um novo aluguel caso já exista um aberto para o memso carro.
+Ao realizar um aluguel, o status do carro deverá será alterado para indisponível.

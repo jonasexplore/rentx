@@ -42,6 +42,6 @@ describe("Create category", () => {
 
     expect(async () => {
       await createCategory.execute(newCategory);
-    }).rejects.toBeInstanceOf(AppError);
+    }).rejects.toEqual(new AppError("CATEGORY_ALREADY_EXISTS"));
   });
 });
