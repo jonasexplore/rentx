@@ -16,8 +16,6 @@ export async function ensureAuthenticated(
 ): Promise<void> {
   const { authorization } = request.headers;
 
-  const usersTokensRepository = new UsersTokensRepository();
-
   if (!authorization) {
     throw new AppError("Token missing", 401);
   }
@@ -25,19 +23,7 @@ export async function ensureAuthenticated(
   const [, token] = authorization.split(" ");
 
   try {
-    const { sub: user_id } = verify(
-      token,
-      auth.secret_refresh_token
-    ) as IPayload;
-
-    const userExists = usersTokensRepository.findByUserIdAndRefreshToken(
-      user_id,
-      token
-    );
-
-    if (!userExists) {
-      throw new AppError("User does not exists", 404);
-    }
+    const { sub: user_id } = verify(token, auth.secret_token) as IPayload;
 
     request.user = {
       id: user_id,
